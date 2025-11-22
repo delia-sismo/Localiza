@@ -238,12 +238,71 @@
   </div>
 
   <script>
-    // Datos fijos de las estaciones
-    const stationData = {
-      ARIG: { lat: 18.280492, lon: -100.347494, circle: null, marker: null },
-      CJIG: { lat: 19.49943,  lon: -105.043867, circle: null, marker: null },
-      MOIG: { lat: 19.646812, lon: -101.227135, circle: null, marker: null }
-    };
+// --- TODAS LAS ESTACIONES ---
+const stationData = {
+  AAIG:{lat:21.9684567, lon:-102.3802},
+  ACIG:{lat:19.984542, lon:-99.88239},
+  ANIG:{lat:21.053822, lon:-104.520706},
+  ARIG:{lat:18.280492, lon:-100.347494},
+  BCIG:{lat:27.544763, lon:-105.412656},
+  CAIG:{lat:17.048585, lon:-100.267253},
+  CCIG:{lat:16.2818, lon:-92.1368},
+  CGIG:{lat:30.365044, lon:-107.977352},
+  CJIG:{lat:19.49943, lon:-105.043867},
+  CMIG:{lat:17.091, lon:-94.8838},
+  CRIG:{lat:16.736338, lon:-99.131171},
+  CSIG:{lat:26.836, lon:-108.371},
+  DAIG:{lat:17.021305, lon:-99.650691},
+  DHIG:{lat:20.3003, lon:-99.035468},
+  FTIG:{lat:17.907928, lon:-98.132664},
+  GTIG:{lat:23.066908, lon:-99.169127},
+  HLIG:{lat:17.829967, lon:-97.803575},
+  HPIG:{lat:26.936794, lon:-105.664017},
+  HSIG:{lat:29.019754, lon:-110.94928},
+  HUIG:{lat:15.76922, lon:-96.10835},
+  IGIG:{lat:20.753042, lon:-101.327803},
+  LNIG:{lat:24.898167, lon:-99.465617},
+  LPIG:{lat:24.100999, lon:-110.309311},
+  LVIG:{lat:19.72622, lon:-96.4185},
+  MAIG:{lat:23.183967, lon:-106.425517},
+  MBIG:{lat:32.407183, lon:-115.19814},
+  MCIG:{lat:27.877093, lon:-101.483627},
+  MEIG:{lat:17.925167, lon:-99.619758},
+  MGIG:{lat:17.233614, lon:-98.633759},
+  MMIG:{lat:18.288528, lon:-103.345565},
+  MNIG:{lat:25.609308, lon:-100.285228},
+  MOIG:{lat:19.646812, lon:-101.227135},
+  MYIG:{lat:20.948069, lon:-89.639614},
+  NZIG:{lat:30.373054, lon:-109.554158},
+  OXIG:{lat:17.072548, lon:-96.7329},
+  PCIG:{lat:15.70462, lon:-93.21895},
+  PDIG:{lat:25.04023, lon:-105.395923},
+  PEIG:{lat:15.99769, lon:-97.14755},
+  PLIG:{lat:18.392194, lon:-99.502368},
+  PNIG:{lat:16.3928, lon:-98.127372},
+  PPIG:{lat:19.06705, lon:-98.628148},
+  PZIG:{lat:19.329, lon:-99.178},
+  RPIG:{lat:21.88492, lon:-99.982753},
+  SCIG:{lat:18.967037, lon:-91.186588},
+  SPIG:{lat:31.04597, lon:-115.466025},
+  SRIG:{lat:27.319827, lon:-112.241057},
+  SSIG:{lat:24.8164483, lon:-107.14489},
+  TEIG:{lat:20.226, lon:-88.276},
+  TGIG:{lat:16.77821, lon:-93.122278},
+  THIG:{lat:14.8823, lon:-92.2958},
+  TJIG:{lat:32.433376, lon:-116.67625},
+  TLIG:{lat:17.562652, lon:-98.5665},
+  TMIG:{lat:19.348953, lon:-102.311172},
+  TOIG:{lat:18.0956833, lon:-97.0646133},
+  TPIG:{lat:18.42021, lon:-97.361985},
+  TSIG:{lat:25.604786, lon:-109.046506},
+  TUIG:{lat:18.03375, lon:-94.42254},
+  TXIG:{lat:17.2532217, lon:-97.7676667},
+  YAIG:{lat:18.862517, lon:-99.066987},
+  YOIG:{lat:16.856545, lon:-97.54565},
+  ZAIG:{lat:22.769176, lon:-102.567122},
+  ZIIG:{lat:17.606869, lon:-101.4644987}
+};
 
     const RAYLEIGH_SPEED = 8; // km/s aprox para el ejercicio
 
@@ -254,23 +313,26 @@
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Crear marcadores de estaciones (con nombre visible)
-    Object.keys(stationData).forEach(id => {
-      const st = stationData[id];
-      const label = id;
-      st.marker = L.marker([st.lat, st.lon]).addTo(map)
-        .bindPopup(
-          `<b>${id}</b><br>Lat: ${st.lat.toFixed(4)}°<br>Lon: ${st.lon.toFixed(4)}°`
-        );
+    // Añadir todas las estaciones al mapa
+Object.keys(stationData).forEach(id => {
+  const st = stationData[id];
 
-      // Nombre permanente sobre el marcador
-      st.marker.bindTooltip(label, {
-        permanent: true,
-        direction: 'top',
-        offset: [0, -10],
-        className: 'station-tooltip'
-      }).openTooltip();
-    });
+  // Marcador de estación
+  const marker = L.marker([st.lat, st.lon]).addTo(map);
+
+  // Tooltip permanente con nombre
+  marker.bindTooltip(id, {
+    permanent: true,
+    direction: "top",
+    offset: [0, -10],
+    className: "station-tooltip"
+  }).openTooltip();
+
+  // Popup con lat/lon
+  marker.bindPopup(
+    `<b>${id}</b><br>Lat: ${st.lat.toFixed(4)}°<br>Lon: ${st.lon.toFixed(4)}°`
+  );
+});
 
     // Marcador manual de epicentro
     let epicenterMarker = null;
@@ -366,3 +428,4 @@
   </script>
 </body>
 </html>
+
