@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Localización de un sismo</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f4f7;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 480px;
+      margin: 16px auto;
+      padding: 18px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+    }
+    h1 {
+      margin: 0 0 4px;
+      text-align: center;
+      color: #004b6b;
+      font-size: 1.4rem;
+    }
+    p.desc {
+      margin: 0 0 12px;
+      font-size: 0.9rem;
+      text-align: center;
+      color: #444;
+    }
+    .station-block {
+      border-top: 1px solid #e1e5ea;
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    .station-title {
+      font-weight: 600;
+      color: #004b6b;
+      margin-bottom: 4px;
+    }
+    .grid-inputs {
+      display: grid;
+      grid-template-columns: 1.2fr 1.2fr;
+      gap: 8px 12px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    label {
+      font-size: 0.85rem;
+      color: #333;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #ccd3da;
+      font-size: 0.85rem;
+      box-sizing: border-box;
+    }
+    .outputs {
+      font-size: 0.83rem;
+      color: #333;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .outputs span.value {
+      font-weight: 600;
+      color: #111;
+      min-width: 60px;
+      display: inline-block;
+    }
+    #map {
+      width: 100%;
+      height: 320px;
+      border-radius: 12px;
+      border: 1px solid #dde3ea;
+      margin-top: 12px;
+    }
+    .epic-info {
+      margin-top: 6px;
+      font-size: 0.82rem;
+      color: #333;
+      text-align: center;
+    }
+    .epic-info span.value {
+      font-weight: 600;
+      color: #111;
+      min-width: 80px;
+      display: inline-block;
+    }
+    h2 {
+      margin-top: 18px;
+      text-align: center;
+      color: #004b6b;
+      font-size: 1.1rem;
+    }
+    figure.sismo {
+      margin: 10px 0 0;
+      border-radius: 12px;
+      border: 1px solid #ccd3da;
+      overflow: hidden;
+      background: #fff;
+    }
+    figure.sismo img {
+      width: 100%;
+      display: block;
+      cursor: zoom-in;
+    }
+    figure.sismo figcaption {
+      font-size: 0.8rem;
+      text-align: center;
+      color: #333;
+      padding: 4px 6px 6px;
+      background: #f7f9fb;
+    }
+    /* Modal de zoom */
+    #imgModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    #imgModal img {
+      max-width: 95%;
+      max-height: 95%;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    }
+    .help {
+      font-size: 0.8rem;
+      color: #555;
+      margin-top: 4px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Localización de un sismo</h1>
+    <p class="desc">
+      Lee en cada sismograma los tiempos de arribo de las ondas P y S.
+      La app calcula S−P, la distancia aproximada (<em>S−P</em> × 8 km)
+      y dibuja un círculo alrededor de cada estación.
+    </p>
+
+    <!-- BLOQUES POR ESTACIÓN -->
+    <div class="station-block" data-id="ARIG">
+      <div class="station-title">Estación ARIG</div>
+      <div class="grid-inputs">
+        <label for="p_ARIG">P (s)</label>
+        <input type="number" id="p_ARIG" step="0.1" inputmode="decimal">
+        <label for="s_ARIG">S (s)</label>
+        <input type="number" id="s_ARIG" step="0.1" inputmode="decimal">
+      </div>
+      <div class="outputs">
+        <div>S−P: <span id="sp_ARIG" class="value">—</span> s</div>
+        <div>Distancia: <span id="dist_ARIG" class="value">—</span> km</div>
+      </div>
+    </div>
+
+    <div class="station-block" data-id="CJIG">
+      <div class="station-title">Estación CJIG</div>
+      <div class="grid-inputs">
+        <label for="p_CJIG">P (s)</label>
+        <input type="number" id="p_CJIG" step="0.1" inputmode="decimal">
+        <label for="s_CJIG">S (s)</label>
+        <input type="number" id="s_CJIG" step="0.1" inputmode="decimal">
+      </div>
+      <div class="outputs">
+        <div>S−P: <span id="sp_CJIG" class="value">—</span> s</div>
+        <div>Distancia: <span id="dist_CJIG" class="value">—</span> km</div>
+      </div>
+    </div>
+
+    <div class="station-block" data-id="MOIG">
+      <div class="station-title">Estación MOIG</div>
+      <div class="grid-inputs">
+        <label for="p_MOIG">P (s)</label>
+        <input type="number" id="p_MOIG" step="0.1" inputmode="decimal">
+        <label for="s_MOIG">S (s)</label>
+        <input type="number" id="s_MOIG" step="0.1" inputmode="decimal">
+      </div>
+      <div class="outputs">
+        <div>S−P: <span id="sp_MOIG" class="value">—</span> s</div>
+        <div>Distancia: <span id="dist_MOIG" class="value">—</span> km</div>
+      </div>
+    </div>
+
+    <div id="map"></div>
+    <p class="help">
+      La intersección de las circunferencias aproxima la localización del epicentro.
+      Haz clic en el mapa para marcar manualmente ese punto.
+    </p>
+
+    <div class="epic-info">
+      Punto marcado en el mapa:<br>
+      Latitud: <span id="epicLat" class="value">—</span>°
+      &nbsp;|&nbsp;
+      Longitud: <span id="epicLon" class="value">—</span>°
+    </div>
+
+    <h2>Sismogramas</h2>
+    <p class="help">Toca la imagen para hacer zoom.</p>
+
+    <figure class="sismo">
+      <img src="ARIG.jpg" alt="Sismograma ARIG">
+      <figcaption>Sismograma de la estación ARIG</figcaption>
+    </figure>
+
+    <figure class="sismo">
+      <img src="CJIG.jpg" alt="Sismograma CJIG">
+      <figcaption>Sismograma de la estación CJIG</figcaption>
+    </figure>
+
+    <figure class="sismo">
+      <img src="MOIG.jpg" alt="Sismograma MOIG">
+      <figcaption>Sismograma de la estación MOIG</figcaption>
+    </figure>
+  </div>
+
+  <!-- Modal de zoom -->
+  <div id="imgModal">
+    <img id="modalImg" src="" alt="Zoom sismograma">
+  </div>
+
+  <script>
+    // Datos fijos de las estaciones
+    const stationData = {
+      ARIG: { lat: 18.280492, lon: -100.347494, circle: null, marker: null },
+      CJIG: { lat: 19.49943,  lon: -105.043867, circle: null, marker: null },
+      MOIG: { lat: 19.646812, lon: -101.227135, circle: null, marker: null }
+    };
+
+    const RAYLEIGH_SPEED = 8; // km/s aprox para el ejercicio
+
+    // Inicializar mapa Leaflet
+    const map = L.map('map').setView([19.2, -102.5], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Crear marcadores de estaciones (con nombre visible)
+    Object.keys(stationData).forEach(id => {
+      const st = stationData[id];
+      const label = id;
+      st.marker = L.marker([st.lat, st.lon]).addTo(map)
+        .bindPopup(
+          `<b>${id}</b><br>Lat: ${st.lat.toFixed(4)}°<br>Lon: ${st.lon.toFixed(4)}°`
+        );
+
+      // Nombre permanente sobre el marcador
+      st.marker.bindTooltip(label, {
+        permanent: true,
+        direction: 'top',
+        offset: [0, -10],
+        className: 'station-tooltip'
+      }).openTooltip();
+    });
+
+    // Marcador manual de epicentro
+    let epicenterMarker = null;
+
+    map.on('click', function (e) {
+      const lat = e.latlng.lat;
+      const lon = e.latlng.lng;
+
+      if (epicenterMarker) {
+        map.removeLayer(epicenterMarker);
+      }
+
+      epicenterMarker = L.marker(e.latlng, {
+        draggable: false
+      }).addTo(map);
+
+      epicenterMarker.bindPopup(
+        `<b>Punto marcado</b><br>Lat: ${lat.toFixed(4)}°<br>Lon: ${lon.toFixed(4)}°`
+      ).openPopup();
+
+      // Actualizar texto debajo del mapa
+      document.getElementById('epicLat').textContent = lat.toFixed(4);
+      document.getElementById('epicLon').textContent = lon.toFixed(4);
+    });
+
+    // Función para actualizar una estación (P, S, S-P, Dist, círculo)
+    function updateStation(id) {
+      const pInput = document.getElementById('p_' + id);
+      const sInput = document.getElementById('s_' + id);
+      const spSpan = document.getElementById('sp_' + id);
+      const distSpan = document.getElementById('dist_' + id);
+
+      const P = parseFloat(pInput.value);
+      const S = parseFloat(sInput.value);
+
+      const st = stationData[id];
+      if (!st) return;
+
+      if (!isFinite(P) || !isFinite(S) || S <= P) {
+        spSpan.textContent = '—';
+        distSpan.textContent = '—';
+        if (st.circle) {
+          map.removeLayer(st.circle);
+          st.circle = null;
+        }
+        return;
+      }
+
+      const sp = S - P;
+      const distKm = sp * RAYLEIGH_SPEED;
+
+      spSpan.textContent = sp.toFixed(1);
+      distSpan.textContent = distKm.toFixed(1);
+
+      // Actualizar círculo
+      if (st.circle) {
+        map.removeLayer(st.circle);
+        st.circle = null;
+      }
+
+      st.circle = L.circle([st.lat, st.lon], {
+        radius: distKm * 1000, // km -> m
+        color: '#c62828',
+        weight: 2,
+        fillColor: '#f44336',
+        fillOpacity: 0.15
+      }).addTo(map);
+    }
+
+    // Escuchar cambios en inputs
+    ['ARIG', 'CJIG', 'MOIG'].forEach(id => {
+      document.getElementById('p_' + id).addEventListener('input', () => updateStation(id));
+      document.getElementById('s_' + id).addEventListener('input', () => updateStation(id));
+    });
+
+    // Zoom de imágenes
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('imgModal');
+      const modalImg = document.getElementById('modalImg');
+
+      document.querySelectorAll('figure.sismo img').forEach(img => {
+        img.addEventListener('click', () => {
+          modalImg.src = img.src;
+          modal.style.display = 'flex';
+        });
+      });
+
+      modal.addEventListener('click', () => {
+        modal.style.display = 'none';
+        modalImg.src = '';
+      });
+    });
+  </script>
+</body>
+</html>
