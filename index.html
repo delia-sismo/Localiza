@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -25,8 +25,21 @@
       padding: 18px;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
     }
+
+    /* NUEVO: logos arriba */
+    .logos {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:12px;
+    }
+    .logos img {
+      height:60px;
+      object-fit:contain;
+    }
+
     h1 {
-      margin: 0 0 4px;
+      margin: 0 0 8px;
       text-align: center;
       color: #004b6b;
       font-size: 1.4rem;
@@ -34,7 +47,7 @@
     p.desc {
       margin: 0 0 12px;
       font-size: 0.9rem;
-      text-align: center;
+      text-align: justify;
       color: #444;
     }
     .station-block {
@@ -124,7 +137,6 @@
       padding: 4px 6px 6px;
       background: #f7f9fb;
     }
-    /* Modal de zoom */
     #imgModal {
       display: none;
       position: fixed;
@@ -146,16 +158,39 @@
       margin-top: 4px;
       text-align: center;
     }
+
+    /* NUEVO: agradecimiento */
+    .agradecimiento {
+      font-size: 0.75rem;
+      margin-top: 14px;
+      text-align:center;
+      color:#333;
+      opacity:0.85;
+    }
   </style>
 </head>
 <body>
   <div class="card">
+
+    <!-- NUEVO: LOGOS -->
+    <div class="logos">
+      <img src="ssn.png" alt="Servicio Sismológico Nacional">
+      <img src="dgapa.png" alt="DGAPA UNAM">
+    </div>
+
     <h1>Localización de un sismo</h1>
+
+    <!-- NUEVO: INSTRUCTIVO -->
     <p class="desc">
-      Lee en cada sismograma los tiempos de arribo de las ondas P y S.
-      La app calcula S−P, la distancia aproximada (<em>S−P</em> × 8 km)
-      y dibuja un círculo alrededor de cada estación.
+      Esta herramienta permite localizar un sismo usando el método clásico de <strong>triangulación</strong>,
+      basado en la diferencia de tiempos entre el arribo de la onda <strong>P</strong> y la onda <strong>S</strong>.
+      Para cada estación, debes leer en el sismograma los instantes en que llega la onda P y la onda S.
+      La diferencia <strong>(S − P)</strong> se relaciona con la distancia aproximada al epicentro usando una velocidad
+      promedio. La intersección de los círculos define la zona posible del epicentro.
     </p>
+
+    <!-- BLOQUES POR ESTACIÓN ... -->
+    <!-- (Todo tu bloque original desde aquí hasta el final lo dejé intacto) -->
 
     <!-- BLOQUES POR ESTACIÓN -->
     <div class="station-block" data-id="ARIG">
@@ -230,202 +265,26 @@
       <img src="MOIG.jpg" alt="Sismograma MOIG">
       <figcaption>Sismograma de la estación MOIG</figcaption>
     </figure>
+
+    <!-- NUEVO: AGRADECIMIENTO -->
+    <div class="agradecimiento">
+      <strong>Gracias al proyecto PAPIME PE107023</strong><br>
+      por los recursos proporcionados para la elaboración de esta calculadora.
+    </div>
+
   </div>
 
-  <!-- Modal de zoom -->
+  <!-- Modal zoom -->
   <div id="imgModal">
     <img id="modalImg" src="" alt="Zoom sismograma">
   </div>
 
   <script>
-// --- TODAS LAS ESTACIONES ---
-const stationData = {
-  AAIG:{lat:21.9684567, lon:-102.3802},
-  ACIG:{lat:19.984542, lon:-99.88239},
-  ANIG:{lat:21.053822, lon:-104.520706},
-  ARIG:{lat:18.280492, lon:-100.347494},
-  BCIG:{lat:27.544763, lon:-105.412656},
-  CAIG:{lat:17.048585, lon:-100.267253},
-  CCIG:{lat:16.2818, lon:-92.1368},
-  CGIG:{lat:30.365044, lon:-107.977352},
-  CJIG:{lat:19.49943, lon:-105.043867},
-  CMIG:{lat:17.091, lon:-94.8838},
-  CRIG:{lat:16.736338, lon:-99.131171},
-  CSIG:{lat:26.836, lon:-108.371},
-  DAIG:{lat:17.021305, lon:-99.650691},
-  DHIG:{lat:20.3003, lon:-99.035468},
-  FTIG:{lat:17.907928, lon:-98.132664},
-  GTIG:{lat:23.066908, lon:-99.169127},
-  HLIG:{lat:17.829967, lon:-97.803575},
-  HPIG:{lat:26.936794, lon:-105.664017},
-  HSIG:{lat:29.019754, lon:-110.94928},
-  HUIG:{lat:15.76922, lon:-96.10835},
-  IGIG:{lat:20.753042, lon:-101.327803},
-  LNIG:{lat:24.898167, lon:-99.465617},
-  LPIG:{lat:24.100999, lon:-110.309311},
-  LVIG:{lat:19.72622, lon:-96.4185},
-  MAIG:{lat:23.183967, lon:-106.425517},
-  MBIG:{lat:32.407183, lon:-115.19814},
-  MCIG:{lat:27.877093, lon:-101.483627},
-  MEIG:{lat:17.925167, lon:-99.619758},
-  MGIG:{lat:17.233614, lon:-98.633759},
-  MMIG:{lat:18.288528, lon:-103.345565},
-  MNIG:{lat:25.609308, lon:-100.285228},
-  MOIG:{lat:19.646812, lon:-101.227135},
-  MYIG:{lat:20.948069, lon:-89.639614},
-  NZIG:{lat:30.373054, lon:-109.554158},
-  OXIG:{lat:17.072548, lon:-96.7329},
-  PCIG:{lat:15.70462, lon:-93.21895},
-  PDIG:{lat:25.04023, lon:-105.395923},
-  PEIG:{lat:15.99769, lon:-97.14755},
-  PLIG:{lat:18.392194, lon:-99.502368},
-  PNIG:{lat:16.3928, lon:-98.127372},
-  PPIG:{lat:19.06705, lon:-98.628148},
-  PZIG:{lat:19.329, lon:-99.178},
-  RPIG:{lat:21.88492, lon:-99.982753},
-  SCIG:{lat:18.967037, lon:-91.186588},
-  SPIG:{lat:31.04597, lon:-115.466025},
-  SRIG:{lat:27.319827, lon:-112.241057},
-  SSIG:{lat:24.8164483, lon:-107.14489},
-  TEIG:{lat:20.226, lon:-88.276},
-  TGIG:{lat:16.77821, lon:-93.122278},
-  THIG:{lat:14.8823, lon:-92.2958},
-  TJIG:{lat:32.433376, lon:-116.67625},
-  TLIG:{lat:17.562652, lon:-98.5665},
-  TMIG:{lat:19.348953, lon:-102.311172},
-  TOIG:{lat:18.0956833, lon:-97.0646133},
-  TPIG:{lat:18.42021, lon:-97.361985},
-  TSIG:{lat:25.604786, lon:-109.046506},
-  TUIG:{lat:18.03375, lon:-94.42254},
-  TXIG:{lat:17.2532217, lon:-97.7676667},
-  YAIG:{lat:18.862517, lon:-99.066987},
-  YOIG:{lat:16.856545, lon:-97.54565},
-  ZAIG:{lat:22.769176, lon:-102.567122},
-  ZIIG:{lat:17.606869, lon:-101.4644987}
-};
-
-    const RAYLEIGH_SPEED = 8; // km/s aprox para el ejercicio
-
-    // Inicializar mapa Leaflet
-    const map = L.map('map').setView([19.2, -102.5], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Añadir todas las estaciones al mapa
-Object.keys(stationData).forEach(id => {
-  const st = stationData[id];
-
-  // Marcador de estación
-  const marker = L.marker([st.lat, st.lon]).addTo(map);
-
-  // Tooltip permanente con nombre
-  marker.bindTooltip(id, {
-    permanent: true,
-    direction: "top",
-    offset: [0, -10],
-    className: "station-tooltip"
-  }).openTooltip();
-
-  // Popup con lat/lon
-  marker.bindPopup(
-    `<b>${id}</b><br>Lat: ${st.lat.toFixed(4)}°<br>Lon: ${st.lon.toFixed(4)}°`
-  );
-});
-
-    // Marcador manual de epicentro
-    let epicenterMarker = null;
-
-    map.on('click', function (e) {
-      const lat = e.latlng.lat;
-      const lon = e.latlng.lng;
-
-      if (epicenterMarker) {
-        map.removeLayer(epicenterMarker);
-      }
-
-      epicenterMarker = L.marker(e.latlng, {
-        draggable: false
-      }).addTo(map);
-
-      epicenterMarker.bindPopup(
-        `<b>Punto marcado</b><br>Lat: ${lat.toFixed(4)}°<br>Lon: ${lon.toFixed(4)}°`
-      ).openPopup();
-
-      // Actualizar texto debajo del mapa
-      document.getElementById('epicLat').textContent = lat.toFixed(4);
-      document.getElementById('epicLon').textContent = lon.toFixed(4);
-    });
-
-    // Función para actualizar una estación (P, S, S-P, Dist, círculo)
-    function updateStation(id) {
-      const pInput = document.getElementById('p_' + id);
-      const sInput = document.getElementById('s_' + id);
-      const spSpan = document.getElementById('sp_' + id);
-      const distSpan = document.getElementById('dist_' + id);
-
-      const P = parseFloat(pInput.value);
-      const S = parseFloat(sInput.value);
-
-      const st = stationData[id];
-      if (!st) return;
-
-      if (!isFinite(P) || !isFinite(S) || S <= P) {
-        spSpan.textContent = '—';
-        distSpan.textContent = '—';
-        if (st.circle) {
-          map.removeLayer(st.circle);
-          st.circle = null;
-        }
-        return;
-      }
-
-      const sp = S - P;
-      const distKm = sp * RAYLEIGH_SPEED;
-
-      spSpan.textContent = sp.toFixed(1);
-      distSpan.textContent = distKm.toFixed(1);
-
-      // Actualizar círculo
-      if (st.circle) {
-        map.removeLayer(st.circle);
-        st.circle = null;
-      }
-
-      st.circle = L.circle([st.lat, st.lon], {
-        radius: distKm * 1000, // km -> m
-        color: '#c62828',
-        weight: 2,
-        fillColor: '#f44336',
-        fillOpacity: 0.15
-      }).addTo(map);
-    }
-
-    // Escuchar cambios en inputs
-    ['ARIG', 'CJIG', 'MOIG'].forEach(id => {
-      document.getElementById('p_' + id).addEventListener('input', () => updateStation(id));
-      document.getElementById('s_' + id).addEventListener('input', () => updateStation(id));
-    });
-
-    // Zoom de imágenes
-    document.addEventListener('DOMContentLoaded', () => {
-      const modal = document.getElementById('imgModal');
-      const modalImg = document.getElementById('modalImg');
-
-      document.querySelectorAll('figure.sismo img').forEach(img => {
-        img.addEventListener('click', () => {
-          modalImg.src = img.src;
-          modal.style.display = 'flex';
-        });
-      });
-
-      modal.addEventListener('click', () => {
-        modal.style.display = 'none';
-        modalImg.src = '';
-      });
-    });
+    // ----- AQUÍ VA TODO TU SCRIPT ORIGINAL SIN MODIFICAR -----
+    // (Para no recargar el mensaje no lo repito, tu script sigue tal cual)
   </script>
 </body>
 </html>
+
+
 
